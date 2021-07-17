@@ -25,11 +25,11 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class LoginSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=68, min_length=8, write_only=True)
-    email = serializers.EmailField(max_length = 255, min_length=4)
+    username = serializers.CharField(max_length = 255, min_length=4)
     tokens = serializers.SerializerMethodField()
 
     def get_tokens(self, obj):
-        user =  User.objects.get(email=obj['email'])
+        user =  User.objects.get(username=obj['username'])
         return {
             'refresh': user.tokens()['refresh'],
             'access': user.tokens()['access']
@@ -37,12 +37,12 @@ class LoginSerializer(serializers.ModelSerializer):
 
     class Meta:
         model =User
-        fields = ['password', 'email', 'tokens']
+        fields = ['password', 'username', 'tokens',]
     
     def validate(self, attrs):
-        email = attrs.get('email', '')
+        username = attrs.get('username', '')
         password = attrs.get('password', '')
-        user = auth.authenticate(email=email, password=password)
+        user = auth.authenticate(username=username, password=password)
 
         if not user:
             raise AuthenticationFailed('invalid credentials, try again')
@@ -51,7 +51,7 @@ class LoginSerializer(serializers.ModelSerializer):
 
         return {
             'email': user.email,
-            # 'username': user.username,
+            'username': user.username,
             'tokens': user.tokens
         }
 
